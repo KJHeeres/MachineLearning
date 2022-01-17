@@ -17,7 +17,7 @@ seconds = 2 # 20
 samples = seconds * hz
 
 # todo: merge thorax1 and thorax2 (see third example report)
-######### REMEMBER TO GET RID OF THE [:1000]
+######### REMEMBER TO GET RID OF THE [:samples]
 t = np.linspace(0, seconds, samples, False)
 signal_abdomen = np.loadtxt('data/abdomen3.txt')[:samples]
 
@@ -35,11 +35,12 @@ signal_abdomen = normalise_signal(signal_abdomen)
 ax2.plot(t, signal_abdomen)
 ax2.set_title('Normalised Abdomen Signal')
 
-# Extract baseline
+# Extract baseline, lowpass was only for comparison, highpass should be used because it resulted in better results. 
 sos = signal.butter(6, 20, 'lowpass', fs=samples, output='sos')
 signal_abdomen_baseline = signal.sosfilt(sos, signal_abdomen)
 signal_abdomen_without_baseline_lowpass = signal_abdomen - signal_abdomen_baseline
 
+# Apply the highpass filter
 sos = signal.butter(6, 20, 'highpass', fs=samples, output='sos')
 signal_abdomen_without_baseline_highpass = signal.sosfilt(sos, signal_abdomen)
 
@@ -47,6 +48,7 @@ signal_abdomen_without_baseline_highpass = signal.sosfilt(sos, signal_abdomen)
 ax3.plot(t, signal_abdomen_baseline)
 ax3.set_title('Baseline of Abdomen')
 
+# You can remove this since the highpass filter gave the best results
 ax4.plot(t, signal_abdomen_without_baseline_lowpass)
 ax4.set_title('Abdomen without baseline (lowpass)')
 
