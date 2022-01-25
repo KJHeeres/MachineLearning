@@ -2,29 +2,42 @@ from scipy import signal
 
 import numpy as np
 import matplotlib.pyplot as plt
-import pywt
 import statistics
-
-def normalise_signal(signal):
-  "Normalise signal by subtracting the mean and dividing by standard deviation"
-  signal = signal - statistics.mean(signal)
-  signal = signal / np.std(signal)
-  return signal 
 
 # Retrieving the signal, consisting of 20 000 sample points measured at 1 kHz
 hz = 1000
-seconds = 2 # 20
+seconds = 2  # 20
 samples = seconds * hz
 
-# todo: merge thorax1 and thorax2 (see third example report)
-######### REMEMBER TO GET RID OF THE [:samples]
-t = np.linspace(0, seconds, samples, False)
-signal_abdomen = np.loadtxt('data/abdomen3.txt')[:samples]
+CUTOFF_FREQ_HP = 24
+CUTOFF_FREQ_LP = 80
 
-signal_thorax = np.loadtxt('data/thorax1.txt')[:samples]
+
+def normalise_signal(signal):
+    "Normalise signal by subtracting the mean and dividing by standard deviation"
+    signal = signal - statistics.mean(signal)
+    signal = signal / np.std(signal)
+    return signal
+
+
+def apply_smoothening_filters(input_signal, freq_cutoff_hp=CUTOFF_FREQ_HP, freq_cutoff_lp=CUTOFF_FREQ_LP):
+    sos = signal.butter(6, freq_cutoff_hp, 'highpass', fs=samples, output='sos')
+    highpass_filter_result = signal.sosfilt(sos, input_signal)
+    sos = signal.butter(6, freq_cutoff_lp, 'lowpass', fs=samples, output='sos')
+
+    return signal.sosfilt(sos, highpass_filter_result)
+
+
+# todo: merge thorax1 and thorax2 (see third example report)
+# REMEMBER TO GET RID OF THE [:samples]
+t = np.linspace(0, seconds, samples, False)
+
+signal_abdomen = (np.loadtxt('data/abdomen1.txt') + np.loadtxt('data/abdomen2.txt') +
+                  np.loadtxt('data/abdomen3.txt'))[:samples] / 3
+signal_thorax = (np.loadtxt('data/thorax1.txt') + np.loadtxt('data/thorax2.txt'))[:samples] / 2
 
 # Plotting the original thorax1 signal
-fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(5, 1, sharex=True, sharey=False, figsize=(15, 5))
+fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, sharex=True, sharey=False, figsize=(15, 5))
 
 # Plot the original signal
 ax1.plot(t, signal_abdomen)
@@ -32,28 +45,20 @@ ax1.set_title('Original Abdomen Signal')
 
 # Normalise and plot signal
 signal_abdomen = normalise_signal(signal_abdomen)
+signal_thorax = normalise_signal(signal_thorax)
+
 ax2.plot(t, signal_abdomen)
 ax2.set_title('Normalised Abdomen Signal')
 
-# Extract baseline, lowpass was only for comparison, highpass should be used because it resulted in better results. 
-sos = signal.butter(6, 20, 'lowpass', fs=samples, output='sos')
-signal_abdomen_baseline = signal.sosfilt(sos, signal_abdomen)
-signal_abdomen_without_baseline_lowpass = signal_abdomen - signal_abdomen_baseline
-
 # Apply the highpass filter
-sos = signal.butter(6, 20, 'highpass', fs=samples, output='sos')
-signal_abdomen_without_baseline_highpass = signal.sosfilt(sos, signal_abdomen)
+h_abdomen = apply_smoothening_filters(signal_abdomen)
+h_thorax = apply_smoothening_filters(signal_thorax)
 
-# Plot baseline
-ax3.plot(t, signal_abdomen_baseline)
-ax3.set_title('Baseline of Abdomen')
+ax3.plot(t, h_abdomen)
+ax3.set_title('Preprocessed Abdomen Signal')
 
-# You can remove this since the highpass filter gave the best results
-ax4.plot(t, signal_abdomen_without_baseline_lowpass)
-ax4.set_title('Abdomen without baseline (lowpass)')
-
-ax5.plot(t, signal_abdomen_without_baseline_highpass)
-ax5.set_title('Abdomen without baseline (highpass)')
+ax4.plot(t, h_thorax)
+ax4.set_title('Preprocessed Thorax Signal')
 
 plt.tight_layout()
 plt.show()
