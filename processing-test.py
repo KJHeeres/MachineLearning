@@ -2,14 +2,14 @@ from itertools import product
 from filter import Preprocessor, ECGFilter
 import matplotlib.pyplot as plt
 
-hp_freq = 24
-lp_freq = 120
+hp_freq = 16
+lp_freq = 160
 hp_active = True
 lp_active = True
 subsample_rate = 1
 
 hz = 1000
-seconds = 6
+seconds = 10
 learning_rate = 0.001
 samples = int(seconds * hz / subsample_rate)
 t = range(samples)
@@ -27,12 +27,13 @@ noice_signal_combinations = [
     ['data/thorax1.txt'],
     ['data/thorax2.txt'],
     ['data/thorax1.txt', 'data/thorax2.txt'],
+    ['data/thorax1.txt', 'data/thorax2.txt', 'data/abdomen1.txt', 'data/abdomen2.txt'],
 ]
 
 params = dict()
 params['is_linear'] = [True, False]
 params['is_causal'] = [True, False]
-params['window_size'] = [250, 500, 750, 1000, 1500]
+params['window_size'] = [250, 500, 1000, 1500, 2000, 2500]
 
 param_list = []
 for values in product(*params.values()):
@@ -65,13 +66,13 @@ for noice_signal_combination in noice_signal_combinations:
         ax3.plot(t, signal_w_noise - s_hat)
         ax3.set_title('Final result')
 
-        plt.savefig(f'test_images/noice_signal_combination={noice_signal_combination[0][5:-4]}_is_linear={value["is_linear"]}_is_causal={value["is_causal"]}_window_size={value["window_size"]}')
+        plt.savefig(f'test_images/noice_signal_combination={noice_signal_combination[0][5:-4]}{len(noice_signal_combination)}_is_linear={value["is_linear"]}_is_causal={value["is_causal"]}_window_size={value["window_size"]}')
 
 
 
 params = dict()
-params['window_size'] = [250, 500, 750, 1000, 1500]
-params['learning_rate'] = [0.005, 0.001, 0.0005]
+params['window_size'] = [250, 500, 1000, 1500, 2000, 2500]
+params['learning_rate'] = [0.001, 0.0005, 0.0001]
 
 param_list = []
 for values in product(*params.values()):
@@ -84,7 +85,7 @@ for noice_signal_combination in noice_signal_combinations:
 
         filter = ECGFilter(signal_w_noise, noise, window_size=value["window_size"], samples=samples)
 
-        s_hat = filter.online_stochastic_filter(learning_rate=value[learning_rate])
+        s_hat = filter.online_stochastic_filter(learning_rate=value["learning_rate"])
 
         fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, sharey=False, figsize=(15, 5))
 
@@ -99,4 +100,4 @@ for noice_signal_combination in noice_signal_combinations:
         ax3.plot(t, signal_w_noise - s_hat)
         ax3.set_title('Final result')
 
-        plt.savefig(f'test_images/noice_signal_combination={noice_signal_combination}_learning_rate={value["learning_rate"]}_is_causal={value["is_causal"]}_window_size={value["window_size"]}')
+        plt.savefig(f'test_images/noice_signal_combination={noice_signal_combination[0][5:-4]}{len(noice_signal_combination)}_learning_rate={str(value["learning_rate"])[2:]}_window_size={value["window_size"]}')

@@ -110,7 +110,6 @@ class ECGFilter:
 
         model.partial_fit(sample, [self.s[self.window_size] - 1])
         for idx in range(self.window_size, self.samples):
-            print(f'index {idx}')
             sample = self.n[(idx - self.window_size):idx]
             sample = np.reshape(sample, (1, -1))
 
