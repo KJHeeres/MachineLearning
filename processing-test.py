@@ -97,7 +97,7 @@ for noice_signal_combination in noice_signal_combinations:
         ax2.set_title('Input + Noise')
 
 
-        ax3.plot(t, signal_w_noise - s_hat)
+        ax3.plot(t, s_hat)
         ax3.set_title('Final result')
 
         plt.savefig(f'test_images/noice_signal_combination={noice_signal_combination[0][5:-4]}{len(noice_signal_combination)}_learning_rate={str(value["learning_rate"])[2:]}_window_size={value["window_size"]}')

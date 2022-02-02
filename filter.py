@@ -108,13 +108,12 @@ class ECGFilter:
         sample = self.n[0:(self.window_size)]
         sample = np.reshape(sample, (1, -1))
 
-        model.partial_fit(sample, [self.s[self.window_size] - 1])
+        model.partial_fit(sample, [self.s[self.window_size] ])
         for idx in range(self.window_size, self.samples):
             sample = self.n[(idx - self.window_size):idx]
             sample = np.reshape(sample, (1, -1))
 
             y = model.predict(sample)
-
             cur_s_hat = self.s[idx] - y
 
             model.partial_fit(sample, np.array([self.s[idx]]))
