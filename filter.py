@@ -16,8 +16,8 @@ class Preprocessor:
         self.lowpass_acitve = False
         self.bandpass_acitve = True
         self.subsample_rate = 1
-        self.samples = 1000 * seconds
         self.order_bandpass = 6
+        self.samples = 1000 * seconds #/ self.subsample_rate
 
     def set_preprocessing_options(self, freq_hp, freq_lp, hp_active, lp_active, subsample_rate):
         self.cutoff_freq_hp = freq_hp
