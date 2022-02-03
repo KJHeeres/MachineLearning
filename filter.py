@@ -14,7 +14,7 @@ class Preprocessor:
         self.highpass_active = True
         self.lowpass_acitve = True
         self.subsample_rate = 1
-        self.samples = 1000 * seconds
+        self.samples = 1000 * seconds / self.subsample_rate
 
     def set_preprocessing_options(self, freq_hp, freq_lp, hp_active, lp_active, subsample_rate):
         self.cutoff_freq_hp = freq_hp
@@ -46,7 +46,7 @@ class Preprocessor:
             result = signal.sosfilt(sos, result)
         if self.lowpass_acitve:
             sos = signal.butter(6, self.cutoff_freq_lp, 'lowpass', fs=self.samples, output='sos')
-            result = result - signal.sosfilt(sos, result)
+            result = signal.sosfilt(sos, result)
 
         return result
 
