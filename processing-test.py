@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 from scipy import signal
 import numpy as np
 
-hp_freq = 45
-lp_freq = 30
-hp_active = True
-lp_active = True
+hp_freq = 90
+lp_freq = 27
+hp_active = False
+lp_active = False
 subsample_rate = 1
 
 hz = 1000
@@ -32,7 +32,7 @@ noice_signal_combinations = [
 params = dict()
 params['is_linear'] = [True, False]
 params['is_causal'] = [True, False]
-params['window_size'] = [250]
+params['window_size'] = [200,250,300,350]
 
 param_list = []
 for values in product(*params.values()):
@@ -74,7 +74,7 @@ params['learning_rate'] = [0.001, 0.0005, 0.0001]
 param_list = []
 for values in product(*params.values()):
     param_list.append(dict(zip(params, values)))
-
+"""
 for noice_signal_combination in noice_signal_combinations:
     noise = p.get_signal(noice_signal_combination)
     for value in param_list:
@@ -99,3 +99,4 @@ for noice_signal_combination in noice_signal_combinations:
         # plt.show()
         plt.savefig(
             f'test_images/noice_signal_combination={noice_signal_combination[0][5:-4]}{len(noice_signal_combination)}_learning_rate={str(value["learning_rate"])[2:]}_window_size={value["window_size"]}')
+"""
