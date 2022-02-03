@@ -23,12 +23,14 @@ class Preprocessor:
         self.lowpass_acitve = lp_active
         self.subsample_rate = subsample_rate
 
+    def filter_signal(self, signal):
+        s = self.normalise_signal(signal)
+        s = self.apply_smoothening_filters(s)
+        return self.subsample_signal(s)
+
     def get_signal(self, signal_file_names):
         s = self.load_signal(signal_file_names)
-        s = self.normalise_signal(s)
-        s = self.apply_smoothening_filters(s)
-        s = self.subsample_signal(s)
-        return s
+        return self.filter_signal(s)
 
     def load_signal(self, signals):
         signal_out = np.zeros(self.samples)
