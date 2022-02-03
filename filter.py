@@ -11,14 +11,18 @@ class Preprocessor:
     def __init__(self, seconds=10):
         self.cutoff_freq_hp = 12
         self.cutoff_freq_lp = 120
-        self.highpass_active = True
-        self.lowpass_acitve = True
+        self.bandpass_freq = [0,0]
+        self.highpass_active = False
+        self.lowpass_acitve = False
+        self.bandpass_acitve = True
         self.subsample_rate = 1
         self.samples = 1000 * seconds
+        self.order_bandpass = 6
 
     def set_preprocessing_options(self, freq_hp, freq_lp, hp_active, lp_active, subsample_rate):
         self.cutoff_freq_hp = freq_hp
         self.cutoff_freq_lp = freq_lp
+        self.bandpass_freq = [freq_lp, freq_hp]
         self.highpass_active = hp_active
         self.lowpass_acitve = lp_active
         self.subsample_rate = subsample_rate
@@ -32,6 +36,10 @@ class Preprocessor:
         s = self.load_signal(signal_file_names)
         return self.filter_signal(s)
 
+    def get_unfiltered_signal(self, signal_file_names):
+        s = self.load_signal(signal_file_names)
+        return s
+
     def load_signal(self, signals):
         signal_out = np.zeros(self.samples)
         for signal in signals:
@@ -42,11 +50,14 @@ class Preprocessor:
     def apply_smoothening_filters(self, input_signal):
         result = input_signal
         if self.highpass_active:
-            sos = signal.butter(6, self.cutoff_freq_hp, 'highpass', fs=self.samples, output='sos')
+            sos = signal.butter(self.order_hp, self.cutoff_freq_hp, 'highpass', fs=self.samples, output='sos')
             result = signal.sosfilt(sos, result)
         if self.lowpass_acitve:
-            sos = signal.butter(6, self.cutoff_freq_lp, 'lowpass', fs=self.samples, output='sos')
-            result = result - signal.sosfilt(sos, result)
+            sos = signal.butter(self.order_lp, self.cutoff_freq_lp, 'lowpass', fs=self.samples, output='sos')
+            result = signal.sosfilt(sos, result)
+        if self.bandpass_acitve:
+            sos = signal.butter(self.order_bandpass, self.bandpass_freq, 'bandpass', fs=self.samples, output='sos')
+            result = signal.sosfilt(sos, result)
 
         return result
 

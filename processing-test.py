@@ -2,10 +2,10 @@ from itertools import product
 from filter import Preprocessor, ECGFilter
 import matplotlib.pyplot as plt
 
-hp_freq = 16
+hp_freq = 20
 lp_freq = 160
 hp_active = True
-lp_active = True
+lp_active = False
 subsample_rate = 1
 
 hz = 1000
@@ -24,10 +24,7 @@ p.set_preprocessing_options(
 )
 
 noice_signal_combinations = [
-    ['data/thorax1.txt'],
-    ['data/thorax2.txt'],
-    ['data/thorax1.txt', 'data/thorax2.txt'],
-    ['data/thorax1.txt', 'data/thorax2.txt', 'data/abdomen1.txt', 'data/abdomen2.txt'],
+    ['data/thorax2.txt']
 ]
 
 params = dict()
@@ -42,6 +39,7 @@ for values in product(*params.values()):
 
 signal_w_noise = p.get_signal(['data/abdomen3.txt'])
 
+"""
 for noice_signal_combination in noice_signal_combinations:
     noise = p.get_signal(noice_signal_combination)
     for value in param_list:
@@ -67,7 +65,7 @@ for noice_signal_combination in noice_signal_combinations:
         ax3.set_title('Final result')
 
         plt.savefig(f'test_images/noice_signal_combination={noice_signal_combination[0][5:-4]}{len(noice_signal_combination)}_is_linear={value["is_linear"]}_is_causal={value["is_causal"]}_window_size={value["window_size"]}')
-
+"""
 
 
 params = dict()
@@ -81,7 +79,7 @@ for values in product(*params.values()):
 for noice_signal_combination in noice_signal_combinations:
     noise = p.get_signal(noice_signal_combination)
     for value in param_list:
-        print('|')
+        print('||')
 
         filter = ECGFilter(signal_w_noise, noise, window_size=value["window_size"], samples=samples)
 
