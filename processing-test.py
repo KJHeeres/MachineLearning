@@ -1,15 +1,17 @@
 from itertools import product
 from filter import Preprocessor, ECGFilter
 import matplotlib.pyplot as plt
+from scipy import signal
+import numpy as np
 
-hp_freq = 20
-lp_freq = 160
+hp_freq = 45
+lp_freq = 30
 hp_active = True
-lp_active = False
+lp_active = True
 subsample_rate = 1
 
 hz = 1000
-seconds = 10
+seconds = 6
 learning_rate = 0.001
 samples = int(seconds * hz / subsample_rate)
 t = range(samples)
@@ -30,20 +32,19 @@ noice_signal_combinations = [
 params = dict()
 params['is_linear'] = [True, False]
 params['is_causal'] = [True, False]
-params['window_size'] = [250, 500, 1000, 1500, 2000, 2500]
+params['window_size'] = [250]
 
 param_list = []
 for values in product(*params.values()):
     param_list.append(dict(zip(params, values)))
 
 
-signal_w_noise = p.get_signal(['data/abdomen3.txt'])
+signal_w_noise = np.abs(signal.hilbert(p.get_signal(['data/abdomen3.txt'])))
 
-"""
 for noice_signal_combination in noice_signal_combinations:
-    noise = p.get_signal(noice_signal_combination)
+    noise = np.abs(signal.hilbert(p.get_signal(noice_signal_combination)))
     for value in param_list:
-        print('|')
+        print('|', end='')
 
         filter = ECGFilter(signal_w_noise, noise, window_size=value["window_size"], samples=samples)
         if(value["is_linear"]):
@@ -60,16 +61,14 @@ for noice_signal_combination in noice_signal_combinations:
         ax2.plot(t, signal_w_noise)
         ax2.set_title('Input + Noise')
 
-
         ax3.plot(t, signal_w_noise - s_hat)
         ax3.set_title('Final result')
 
-        plt.savefig(f'test_images/noice_signal_combination={noice_signal_combination[0][5:-4]}{len(noice_signal_combination)}_is_linear={value["is_linear"]}_is_causal={value["is_causal"]}_window_size={value["window_size"]}')
-"""
-
+        plt.savefig(
+            f'test_images/noice_signal_combination={noice_signal_combination[0][5:-4]}{len(noice_signal_combination)}_is_linear={value["is_linear"]}_is_causal={value["is_causal"]}_window_size={value["window_size"]}')
 
 params = dict()
-params['window_size'] = [250, 500, 1000, 1500, 2000, 2500]
+params['window_size'] = [45, 125, 250, 500, 1000, 1500]
 params['learning_rate'] = [0.001, 0.0005, 0.0001]
 
 param_list = []
@@ -79,7 +78,7 @@ for values in product(*params.values()):
 for noice_signal_combination in noice_signal_combinations:
     noise = p.get_signal(noice_signal_combination)
     for value in param_list:
-        print('||')
+        print('|| ', end='')
 
         filter = ECGFilter(signal_w_noise, noise, window_size=value["window_size"], samples=samples)
 
@@ -94,8 +93,9 @@ for noice_signal_combination in noice_signal_combinations:
         ax2.plot(t, signal_w_noise)
         ax2.set_title('Input + Noise')
 
-
         ax3.plot(t, s_hat)
         ax3.set_title('Final result')
 
-        plt.savefig(f'test_images/noice_signal_combination={noice_signal_combination[0][5:-4]}{len(noice_signal_combination)}_learning_rate={str(value["learning_rate"])[2:]}_window_size={value["window_size"]}')
+        # plt.show()
+        plt.savefig(
+            f'test_images/noice_signal_combination={noice_signal_combination[0][5:-4]}{len(noice_signal_combination)}_learning_rate={str(value["learning_rate"])[2:]}_window_size={value["window_size"]}')

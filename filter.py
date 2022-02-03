@@ -11,13 +11,15 @@ class Preprocessor:
     def __init__(self, seconds=10):
         self.cutoff_freq_hp = 12
         self.cutoff_freq_lp = 120
-        self.bandpass_freq = [0,0]
+        self.bandpass_freq = [0, 0]
         self.highpass_active = False
         self.lowpass_acitve = False
         self.bandpass_acitve = True
         self.subsample_rate = 1
+        self.order_hp = 6
+        self.order_lp = 6
         self.order_bandpass = 6
-        self.samples = 1000 * seconds #/ self.subsample_rate
+        self.samples = 1000 * seconds  # / self.subsample_rate
 
     def set_preprocessing_options(self, freq_hp, freq_lp, hp_active, lp_active, subsample_rate):
         self.cutoff_freq_hp = freq_hp
@@ -49,14 +51,14 @@ class Preprocessor:
 
     def apply_smoothening_filters(self, input_signal):
         result = input_signal
-        if self.highpass_active:
-            sos = signal.butter(self.order_hp, self.cutoff_freq_hp, 'highpass', fs=self.samples, output='sos')
-            result = signal.sosfilt(sos, result)
-        if self.lowpass_acitve:
-            sos = signal.butter(self.order_lp, self.cutoff_freq_lp, 'lowpass', fs=self.samples, output='sos')
-            result = signal.sosfilt(sos, result)
+        # if self.highpass_active:
+        #     sos = signal.butter(self.order_hp, self.cutoff_freq_hp, 'highpass', fs=1000, output='sos')
+        #     result = signal.sosfilt(sos, result)
+        # if self.lowpass_acitve:
+        #     sos = signal.butter(self.order_lp, self.cutoff_freq_lp, 'lowpass', fs=1000, output='sos')
+        #     result = signal.sosfilt(sos, result)
         if self.bandpass_acitve:
-            sos = signal.butter(self.order_bandpass, self.bandpass_freq, 'bandpass', fs=self.samples, output='sos')
+            sos = signal.butter(self.order_bandpass, self.bandpass_freq, 'bandpass', fs=1000, output='sos')
             result = signal.sosfilt(sos, result)
 
         return result
@@ -84,7 +86,7 @@ class ECGFilter:
             s_targets = self.s[self.window_size:self.samples]
         else:
             n_windows = sliding_window_view(self.n, 2 * self.window_size + 1)
-            s_targets = self.s[self.window_size:(self.samples- self.window_size)]
+            s_targets = self.s[self.window_size:(self.samples - self.window_size)]
 
         return n_windows, s_targets
 
@@ -121,7 +123,7 @@ class ECGFilter:
         sample = self.n[0:(self.window_size)]
         sample = np.reshape(sample, (1, -1))
 
-        model.partial_fit(sample, [self.s[self.window_size] ])
+        model.partial_fit(sample, [self.s[self.window_size]])
         for idx in range(self.window_size, self.samples):
             sample = self.n[(idx - self.window_size):idx]
             sample = np.reshape(sample, (1, -1))
