@@ -28,11 +28,14 @@ p.set_filter_frequencies(
     pre_lower_freq
 )
 
-filtered_abdomen_signal = np.abs(signal.hilbert(p.get_signal(['data/abdomen3.txt'])))
-filtered_thorax_signal = np.abs(signal.hilbert(p.get_signal(['data/thorax2.txt'])))
+filtered_abdomen_signal = p.get_signal(['data/abdomen3.txt'])
+filtered_thorax_signal = p.get_signal(['data/thorax2.txt'])
+
+filtered_abdomen_signal_hilbert = np.abs(signal.hilbert(filtered_abdomen_signal))
+filtered_thorax_signal_hilbert = np.abs(signal.hilbert(filtered_thorax_signal))
 
 # windowed linear Regression
-m = Model(filtered_abdomen_signal, filtered_thorax_signal, window_size=window_size, samples=samples)
+m = Model(filtered_abdomen_signal_hilbert, filtered_thorax_signal_hilbert, window_size=window_size, samples=samples)
 s_hat = m.sliding_window_linear_regressor(is_causal=False)
 
 # postprocessing settings
@@ -46,29 +49,67 @@ p.set_filter_frequencies(
     post_lower_freq
 )
 
-filtered_signal = p.filter_signal(filtered_abdomen_signal - s_hat)
+filtered_signal = p.filter_signal(filtered_abdomen_signal_hilbert - s_hat)
 output = np.abs(signal.hilbert(filtered_signal))
 
-fig, (ax1, ax2, ax3, ax4, ax5, ax6) = plt.subplots(6, 1, sharex=True, sharey=False, figsize=(15, 6))
+# Originals 
+fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, sharey=False, figsize=(15, 6))
+fig.tight_layout()
 
 # Plot the original signal
 ax1.plot(t, thorax_signal)
-ax1.set_title('thorax signal')
+ax1.set_title('Original thorax signal')
 
 ax2.plot(t, abdomen_signal)
-ax2.set_title('abdomen_signal')
+ax2.set_title('Original abdomen signal')
 
-ax3.plot(t, filtered_thorax_signal)
-ax3.set_title('Filtered Thorax Signal (noise)')
+plt.savefig(f'test_images/final_original_signals')
+plt.show()
 
-ax4.plot(t, filtered_abdomen_signal)
-ax4.set_title('Filtered Abdomen Signal (Input + Noise)')
+#Pre-processing figures
+fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, sharex=True, sharey=False, figsize=(15, 6))
+fig.tight_layout()
 
-ax5.plot(t, filtered_abdomen_signal - s_hat)
-ax5.set_title('Abdomen - Thorax (Output)')
+ax1.plot(t, filtered_thorax_signal)
+ax1.set_title('Pre-processed thorax signal')
 
-ax6.plot(t, output)
-ax6.set_title('Filtered Output')
+ax2.plot(t, filtered_abdomen_signal_hilbert)
+ax2.set_title('Pre-processed abdomen signal')
 
-plt.savefig(f'test_images/final')
+ax3.plot(t, filtered_thorax_signal_hilbert)
+ax3.set_title('Pre-processed thorax signal (with hilbert)')
+
+ax4.plot(t, filtered_abdomen_signal_hilbert)
+ax4.set_title('Pre-processed abdomen signal (with hilbert)')
+
+plt.savefig(f'test_images/final_preprocessed_signals')
+plt.show()
+
+#Processing figures
+fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, sharey=False, figsize=(15, 6))
+fig.tight_layout()
+
+ax1.plot(t, s_hat)
+ax1.set_title('Linear Regression (Output)')
+
+ax2.plot(t, filtered_abdomen_signal_hilbert - s_hat)
+ax2.set_title('Abdomen - Thorax (Output)')
+
+plt.savefig(f'test_images/final_processed_signal')
+plt.show()
+
+# Post processing figures
+fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, sharey=False, figsize=(15, 6))
+fig.tight_layout()
+
+ax1.plot(t, thorax_signal)
+ax1.set_title('Original thorax signal')
+
+ax2.plot(t, abdomen_signal)
+ax2.set_title('Original abdomen signal')
+
+ax3.plot(t, output)
+ax3.set_title('Post-processed Output')
+
+plt.savefig(f'test_images/final_post_processed_signal')
 plt.show()
