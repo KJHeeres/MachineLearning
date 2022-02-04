@@ -1,13 +1,11 @@
 from itertools import product
-from filter import Preprocessor, ECGFilter
+from filter import *
 import matplotlib.pyplot as plt
 from scipy import signal
 import numpy as np
 
 hp_freq = 90
 lp_freq = 27
-hp_active = False
-lp_active = False
 subsample_rate = 1
 
 hz = 1000
@@ -16,13 +14,10 @@ learning_rate = 0.001
 samples = int(seconds * hz / subsample_rate)
 t = range(samples)
 
-p = Preprocessor(seconds=seconds)
-p.set_preprocessing_options(
+p = Filter(seconds=seconds)
+p.set_filter_frequencies(
     hp_freq,
     lp_freq,
-    hp_active,
-    lp_active,
-    subsample_rate
 )
 
 noice_signal_combinations = [
@@ -46,11 +41,11 @@ for noice_signal_combination in noice_signal_combinations:
     for value in param_list:
         print('|', end='')
 
-        filter = ECGFilter(signal_w_noise, noise, window_size=value["window_size"], samples=samples)
+        m = Model(signal_w_noise, noise, window_size=value["window_size"], samples=samples)
         if(value["is_linear"]):
-            s_hat = filter.sliding_window_linear_regressor(is_causal=value["is_causal"])
+            s_hat = m.sliding_window_linear_regressor(is_causal=value["is_causal"])
         else:
-            s_hat = filter.sliding_window_stochastic_regressor(is_causal=value["is_causal"])
+            s_hat = m.sliding_window_stochastic_regressor(is_causal=value["is_causal"])
 
         fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, sharey=False, figsize=(15, 5))
 
@@ -66,6 +61,7 @@ for noice_signal_combination in noice_signal_combinations:
 
         plt.savefig(
             f'test_images/noice_signal_combination={noice_signal_combination[0][5:-4]}{len(noice_signal_combination)}_is_linear={value["is_linear"]}_is_causal={value["is_causal"]}_window_size={value["window_size"]}')
+        plt.close()
 
 params = dict()
 params['window_size'] = [45, 125, 250, 500, 1000, 1500]

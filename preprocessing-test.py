@@ -1,5 +1,5 @@
 from itertools import product
-from filter import Preprocessor
+from filter import *
 import matplotlib.pyplot as plt
 from scipy import signal
 import numpy as np
@@ -12,13 +12,11 @@ learning_rate = 0.001
 samples = int(seconds * hz / subsample_rate)
 t = range(samples)
 
-p = Preprocessor(seconds=seconds)
+p = Filter(seconds=seconds)
 
 params = dict()
 params['hp_freq'] = [x for x in range(20, 90)]  # niets meer aan doen (was 45)
 params['lp_freq'] = [x for x in range(2, 30)]  # niets meer aan doen (was 30)
-params['hp_active'] = [True]
-params['lp_active'] = [True]
 
 param_list = []
 for values in product(*params.values()):
@@ -27,12 +25,9 @@ for values in product(*params.values()):
 
 for value in param_list:
     # print('|', end='')
-    p.set_preprocessing_options(
+    p.set_filter_frequencies(
         value['hp_freq'],
         value['lp_freq'],
-        value['hp_active'],
-        value['lp_active'],
-        subsample_rate
     )
 
     signal_w_noise = p.get_signal(['data/abdomen3.txt'])
@@ -60,5 +55,5 @@ for value in param_list:
     plt.legend()
 
     plt.savefig(
-        f'test_images/hp_freq={value["hp_freq"]}_lp_freq={str(value["lp_freq"]).replace(".","_")}_hp_active={value["hp_active"]}_lp_active={value["lp_active"]}')
+        f'test_images/hp_freq={value["hp_freq"]}_lp_freq={str(value["lp_freq"]).replace(".","_")}')
     plt.close()

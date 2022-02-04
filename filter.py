@@ -6,14 +6,10 @@ import statistics
 from sklearn.linear_model import LinearRegression, SGDRegressor
 from numpy.lib.stride_tricks import sliding_window_view
 
-class Preprocessor:
+class Filter:
 
     def __init__(self, seconds=10):
-        self.cutoff_freq_hp = 12
-        self.cutoff_freq_lp = 120
         self.bandpass_freq = [0, 0]
-        self.highpass_active = False
-        self.lowpass_acitve = False
         self.bandpass_acitve = True
         self.subsample_rate = 1
         self.order_hp = 6
@@ -21,13 +17,8 @@ class Preprocessor:
         self.order_bandpass = 6
         self.samples = 1000 * seconds  # / self.subsample_rate
 
-    def set_preprocessing_options(self, freq_hp, freq_lp, hp_active, lp_active, subsample_rate):
-        self.cutoff_freq_hp = freq_hp
-        self.cutoff_freq_lp = freq_lp
+    def set_filter_frequencies(self, freq_hp, freq_lp):
         self.bandpass_freq = [freq_lp, freq_hp]
-        self.highpass_active = hp_active
-        self.lowpass_acitve = lp_active
-        self.subsample_rate = subsample_rate
 
     def filter_signal(self, signal):
         s = self.normalise_signal(signal)
@@ -51,12 +42,6 @@ class Preprocessor:
 
     def apply_smoothening_filters(self, input_signal):
         result = input_signal
-        # if self.highpass_active:
-        #     sos = signal.butter(self.order_hp, self.cutoff_freq_hp, 'highpass', fs=1000, output='sos')
-        #     result = signal.sosfilt(sos, result)
-        # if self.lowpass_acitve:
-        #     sos = signal.butter(self.order_lp, self.cutoff_freq_lp, 'lowpass', fs=1000, output='sos')
-        #     result = signal.sosfilt(sos, result)
         if self.bandpass_acitve:
             sos = signal.butter(self.order_bandpass, self.bandpass_freq, 'bandpass', fs=1000, output='sos')
             result = signal.sosfilt(sos, result)
@@ -72,7 +57,7 @@ class Preprocessor:
     def subsample_signal(self, signal):
         return signal[::self.subsample_rate]
 
-class ECGFilter:
+class Model:
 
     def __init__(self, signal, noise, window_size=500, samples=10000):
         self.samples = samples
